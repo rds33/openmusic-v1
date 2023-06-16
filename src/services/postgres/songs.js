@@ -58,7 +58,7 @@ class SongsService {
             };
           }
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
         return { songs: rows?.length ? rows.map(mapDBToModelSongs) : [] };
     }
 
@@ -68,7 +68,7 @@ class SongsService {
             values: [id],
         };
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
         if (!rows.length) {
             throw new NotFoundError('Lagu tidak ditemukan');
@@ -86,7 +86,7 @@ class SongsService {
             values: [title, year, genre, performer, duration, albumId, id],
         };
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
         if (!rows.length) {
             throw new NotFoundError(
@@ -101,7 +101,7 @@ class SongsService {
             values: [id],
         };
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
         if (!rows.length) {
             throw new NotFoundError(

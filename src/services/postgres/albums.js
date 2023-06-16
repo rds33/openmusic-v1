@@ -20,7 +20,7 @@ class AlbumsService {
             ],
         };
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
         if (!rows[0].id) {
             throw new InvariantError('Album gagal ditambahkan');
@@ -68,9 +68,9 @@ class AlbumsService {
             values: [name, year, id],
         };
 
-        const result = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        if (!rows.length) {
             throw new NotFoundError(
                 'Gagal memperbarui album. Id tidak ditemukan',
             );
@@ -82,8 +82,8 @@ class AlbumsService {
             text: 'DELETE FROM albums WHERE id = $1 RETURNING id',
             values: [id],
         };
-        const result = await this._pool.query(query);
-        if (!result.rows.length) {
+        const { rows } = await this._pool.query(query);
+        if (!rows.length) {
             throw new NotFoundError(
                 'Gagal menghapus Album. Id tidak ditemukan',
             );
