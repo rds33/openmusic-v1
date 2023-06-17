@@ -3,7 +3,6 @@ const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const { mapDBToModel } = require('../../utils');
-const { mapDBToModelSongs } = require('../../utils');
 
 
 class SongsService {
@@ -11,55 +10,53 @@ class SongsService {
         this._pool = new Pool();
     }
 
-    async addSong(songs) {
-        const {
-            title, year, genre, performer, duration, albumId,
-        } = songs;
-
+    async addSong({
+        title, year, genre, performer, duration, albumsId,
+    }) {
         const id = `songs-${nanoid(16)}`;
+        
         const query = {
             text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
             values: [
-                id, title, year, performer, genre, duration, albumId,
+                id, title, year, genre, performer, duration, albumsId,
             ],
         };
 
-        const rows = await this._pool.query(query);
+        const { rows } = await this._pool.query(query);
 
         if (!rows[0].id) {
             throw new InvariantError('Lagu gagal ditambahkan');
         }
+
         return { songsId: rows[0].id };
     }
 
     async getSongs({ title, performer }) {
-        const getQuery = 'SELECT * FROM songs';
-
-        let query = getQuery;
-
-        if (title) {
-            query = {
-                text: `${getQuery} WHERE LOWER(title) LIKE LOWER($1)`,
-                values: [`%${title}%`],
-            };
+        let query = '';
+        if (title && performer) {
+        query = {
+            text: 'SELECT id, title, performer FROM songs where lower(title) like $1 and lower(performer) like $2',
+            values: [`%${title.toLowerCase()}%`, `%${performer.toLowerCase()}%`],
+        };
+        } else if (title) {
+        query = {
+            text: 'SELECT id, title, performer FROM songs where lower(title) like $1',
+            values: [`%${title.toLowerCase()}%`],
+        };
+        } else if (performer) {
+        query = {
+            text: 'SELECT id, title, performer FROM songs where lower(performer) like $1',
+            values: [`%${performer.toLowerCase()}%`],
+        };
+        } else {
+        query = 'SELECT id, title, performer FROM songs';
         }
 
-        if (performer) {
-            query = {
-                text: `${getQuery} WHERE LOWER(performer) LIKE LOWER($1)`,
-                values: [`%${performer}%`],
-            };
-          }
-
-          if (title && performer) {
-            query = {
-                text: `${getQuery} WHERE LOWER(title) LIKE LOWER($1) AND LOWER(performer) LIKE LOWER($2)`,
-                values: [`%${title}%`, `%${performer}%`],
-            };
-          }
-
-        const { rows } = await this._pool.query(query);
-        return { songs: rows?.length ? rows.map(mapDBToModelSongs) : [] };
+        const result = await this._pool.query(query);
+        if (!result.rows.length) {
+        throw new NotFoundError('Lagu tidak ditemukan');
+        }
+        return result.rows;
     }
 
     async getSongById(id) {
@@ -76,14 +73,12 @@ class SongsService {
         return { songs: { ...rows.map(mapDBToModel)[0] } };
     }
 
-    async editSongById(id, songs) {
-        const { 
-            title, year, performer, genre, duration, albumId,
-        } = songs;
-
+    async editSongById(id, { 
+        title, year, genre, performer, duration, albumsId,
+    }) {
         const query = {
-            text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, "albumId" = $6, WHERE id = $7 RETURNING id',
-            values: [title, year, genre, performer, duration, albumId, id],
+            text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, "albumsId" = $6 WHERE id = $7 RETURNING id',
+            values: [title, year, genre, performer, duration, albumsId, id],
         };
 
         const { rows } = await this._pool.query(query);

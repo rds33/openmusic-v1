@@ -34,7 +34,7 @@ class AlbumsService {
         return result.rows;
     }
 
-    async getAlbumId(id) {
+    async getAlbumById(id) {
         const queryAlbums = {
             text: 'SELECT * FROM albums WHERE id = $1',
             values: [id],
@@ -46,11 +46,11 @@ class AlbumsService {
         }
 
         const querySongs = {
-            text: 'SELECT id,title,performer FROM song WHERE "albumsId"=$1',
+            text: 'SELECT id,title,performer FROM songs WHERE "albumsId"=$1',
             values: [id],
           };
         
-        const songResult = await this._pool.query('SELECT * FROM song');
+        const songResult = await this._pool.query('SELECT * FROM songs');
         const { rows: songs } = songResult.rows.length
             ? await this._pool.query(querySongs) : songResult;
 
@@ -64,7 +64,7 @@ class AlbumsService {
 
     async editAlbumById(id, { name, year }) {
         const query = {
-            text: 'UPDATE albums SET name = $1, year = $2, updated_at = $3, WHERE id = $4 RETURNING id',
+            text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
             values: [name, year, id],
         };
 
@@ -82,7 +82,9 @@ class AlbumsService {
             text: 'DELETE FROM albums WHERE id = $1 RETURNING id',
             values: [id],
         };
+
         const { rows } = await this._pool.query(query);
+
         if (!rows.length) {
             throw new NotFoundError(
                 'Gagal menghapus Album. Id tidak ditemukan',

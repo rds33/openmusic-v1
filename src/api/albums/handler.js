@@ -49,7 +49,7 @@ class AlbumsHandler {
             this._validator.validateAlbumPayload(request.payload);
             const { id } = request.params;
 
-            await this._service.editAlbumId(id, request.payload);
+            await this._service.editAlbumById(id, request.payload);
             return h.response({
                 status: 'success',
                 message: 'Album berhasil diperbarui',
@@ -59,6 +59,7 @@ class AlbumsHandler {
     async deleteAlbumByIdHandler(request, h) {
             const { id } = request.params;
             await this._service.deleteAlbumById(id);
+            
             return h.response({
                 status: 'success',
                 message: 'Album berhasil dihapus',
