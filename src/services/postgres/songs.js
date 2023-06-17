@@ -11,14 +11,14 @@ class SongsService {
     }
 
     async addSong({
-        title, year, genre, performer, duration, albumsId,
+        title, year, performer, genre, duration, albumsId,
     }) {
         const id = `songs-${nanoid(16)}`;
         
         const query = {
             text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
             values: [
-                id, title, year, genre, performer, duration, albumsId,
+                id, title, year, performer, genre, duration, albumsId,
             ],
         };
 
@@ -70,20 +70,18 @@ class SongsService {
         if (!rows.length) {
             throw new NotFoundError('Lagu tidak ditemukan');
         }
-        return { songs: { ...rows.map(mapDBToModel)[0] } };
+        return { songs: rows.map(mapDBToModel)[0] };
     }
 
     async editSongById(id, { 
-        title, year, genre, performer, duration, albumsId,
+        title, year, performer, genre, duration, albumsId,
     }) {
         const query = {
-            text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, "albumsId" = $6 WHERE id = $7 RETURNING id',
-            values: [title, year, genre, performer, duration, albumsId, id],
+            text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5, "albumsId" = $6 WHERE id = $7 RETURNING id',
+            values: [title, year, performer, genre, duration, albumsId, id],
         };
-        console.log(query);
         
         const { rows } = await this._pool.query(query);
-        console.log(rows);
 
         if (!rows.length) {
             throw new NotFoundError(

@@ -1,18 +1,18 @@
 /* eslint-disable camelcase */
 const mapDBToModel = ({
-    Id,
+    id,
     title,
     year,
-    genre,
     performer,
+    genre,
     duration,
     albumsId,
 }) => ({
-    Id,
+    id,
     title,
     year,
-    genre,
     performer,
+    genre,
     duration,
     albumsId,
 });
