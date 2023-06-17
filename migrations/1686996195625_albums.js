@@ -16,8 +16,8 @@ exports.up = (pgm) => {
             type: 'INTEGER',
         },
     });
-};
-
-exports.down = (pgm) => {
+  };
+  
+  exports.down = (pgm) => {
     pgm.dropTable('albums');
-};
+  };

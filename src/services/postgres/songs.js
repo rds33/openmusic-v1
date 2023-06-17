@@ -80,8 +80,10 @@ class SongsService {
             text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, "albumsId" = $6 WHERE id = $7 RETURNING id',
             values: [title, year, genre, performer, duration, albumsId, id],
         };
-
+        console.log(query);
+        
         const { rows } = await this._pool.query(query);
+        console.log(rows);
 
         if (!rows.length) {
             throw new NotFoundError(
