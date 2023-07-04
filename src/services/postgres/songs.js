@@ -104,6 +104,33 @@ class SongsService {
             );
         }
     }
+
+    async getSongsInPlaylist(playlistId) {
+        const query = {
+            text: `SELECT songs.id, songs.title, songs.performer FROM playlist_songs 
+            INNER JOIN songs ON songs.id = playlist_songs.song_id
+            WHERE playlist_id = $1
+            `,
+            values: [playlistId],
+            };
+        const result = await this._pool.query(query);
+        if (!result.rowCount) {
+            throw new NotFoundError('Lagu tidak dapat ditemukan. Id playlist tidak ada');
+        }
+        return result.rows;
+    }
+    
+    async verifySong(id) {
+        const query = {
+          text: 'SELECT * FROM songs WHERE id = $1',
+          values: [id],
+        };
+    
+        const result = await this._pool.query(query);
+        if (!result.rowCount) {
+          throw new NotFoundError('Lagu tidak ditemukan');
+        }
+      }
 }
 
 
