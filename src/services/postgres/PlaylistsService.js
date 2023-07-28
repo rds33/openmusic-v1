@@ -31,8 +31,8 @@ class PlaylistsService {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN collaborations on collaborations.playlist_id = playlists.id
-      left join users on users.id = playlists.owner
-      where playlists.owner = $1 or collaborations.user_id = $1`,
+      LEFT JOIN users on users.id = playlists.owner
+      where playlists.owner = $1 OR collaborations.user_id = $1`,
       values: [owner],
     };
 
@@ -44,7 +44,7 @@ class PlaylistsService {
   async getPlaylistById(id) {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
-      INNER JOIN users ON users.id = playlists.owner
+      LEFT JOIN users ON users.id = playlists.owner
       WHERE playlists.id = $1`,
       values: [id],
     };
@@ -54,7 +54,18 @@ class PlaylistsService {
     return result.rows[0];
   }
 
-  async addSongToPlaylist(playlistId, songId) {
+  async addSongToPlaylist({ playlistId, songId }) {
+    const querySong = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [songId],
+    };
+
+    const resultSong = await this._pool.query(querySong);
+
+    if (!resultSong.rows.length) {
+      throw new NotFoundError('Lagu gagal ditambahkan');
+    }
+
     const id = `playlistsong-${nanoid(16)}`;
     const query = {
       text: 'INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING id',
@@ -68,13 +79,13 @@ class PlaylistsService {
     return result.rows[0].id;
   }
 
-  async addPlaylistSongActivities({
+  async addPlaylistActivities({
     playlistId, songId, credentialId, action,
   }) {
     const id = `activities-${nanoid(16)}`;
     const time = new Date().toISOString();
     const query = {
-        text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6) RETURNING user_id, playlist_id',
+        text: 'INSERT INTO playlist_activities VALUES($1, $2, $3, $4, $5, $6) RETURNING user_id, playlist_id',
         values: [id, playlistId, songId, credentialId, action, time],
     };
     const result = await this._pool.query(query);
@@ -84,13 +95,13 @@ class PlaylistsService {
     return result.rows[0];
   }
 
-  async getPlaylistSongActivities(playlistId) {
+  async getPlaylistActivities(playlistId) {
     const query = {
-        text: `select users.username, songs.title, playlist_song_activities.action, playlist_song_activities.time
-        from playlist_song_activities
-        left join users on users.id = playlist_song_activities.user_id
-        left join songs on songs.id = playlist_song_activities.song_id
-        where playlist_song_activities.playlist_id = $1`,
+        text: `SELECT users.username, songs.title, playlist_activities.action, playlist_activities.time
+        FROM playlist_activities
+        LEFT JOIN users on users.id = playlist_activities.user_id
+        LEFT JOIN songs on songs.id = playlist_activities.song_id
+        WHERE playlist_activities.playlist_id = $1`,
         values: [playlistId.id],
     };
     const result = await this._pool.query(query);
@@ -113,7 +124,7 @@ class PlaylistsService {
     }
   }
 
-  async deleteSongPlaylist(playlistId, songId) {
+  async deleteSongPlaylist(songId, playlistId) {
     const query = {
         text: 'DELETE FROM playlist_songs WHERE song_id = $1 AND playlist_id = $2 RETURNING song_id',
         values: [songId, playlistId],

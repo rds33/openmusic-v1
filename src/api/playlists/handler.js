@@ -1,17 +1,13 @@
 /* eslint-disable max-len */
+const autoBind = require('auto-bind');
+
 class PlaylistsHandler {
     constructor(playlistsService, songsService, validator) {
       this._playlistsService = playlistsService;
       this._songsService = songsService;
       this._validator = validator;
   
-      this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
-      this.postPlaylistSongHandler = this.postPlaylistSongHandler.bind(this);
-      this.getPlaylistsHandler = this.getPlaylistsHandler.bind(this);
-      this.getSongsInPlaylistHandler = this.getSongsInPlaylistHandler.bind(this);
-      this.getPlaylistSongActivitiesHandler = this.getPlaylistSongActivitiesHandler.bind(this);
-      this.deletePlaylistByIdHandler = this.deletePlaylistByIdHandler.bind(this);
-      this.deleteSongFromPlaylistHandler = this.deleteSongFromPlaylistHandler.bind(this);
+      autoBind(this);
     }
 
     async postPlaylistHandler(request, h) {
@@ -40,7 +36,7 @@ class PlaylistsHandler {
 
         const { id: credentialId } = request.auth.credentials;
 
-        await this._songsService.verifySong(playlistId, credentialId);
+        await this._songsService.verifySong(songId);
         await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
 
         const playlistSongId = await this._playlistsService.addSongToPlaylist({ playlistId, songId });
@@ -93,7 +89,7 @@ class PlaylistsHandler {
 
         await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
 
-        const playlist = await this._playlistsService.getPlaylistsById(playlistId);
+        const playlist = await this._playlistsService.getPlaylistById(playlistId);
         const songs = await this._songsService.getSongsInPlaylist(playlistId);
 
         return {

@@ -11,14 +11,14 @@ class SongsService {
     }
 
     async addSong({
-        title, year, performer, genre, duration, albumsId,
+        title, year, performer, genre, duration, albumId,
     }) {
         const id = `songs-${nanoid(16)}`;
         
         const query = {
             text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
             values: [
-                id, title, year, performer, genre, duration, albumsId,
+                id, title, year, performer, genre, duration, albumId,
             ],
         };
 
@@ -31,32 +31,13 @@ class SongsService {
         return { songsId: rows[0].id };
     }
 
-    async getSongs({ title, performer }) {
-        let query = '';
-        if (title && performer) {
-        query = {
-            text: 'SELECT id, title, performer FROM songs where lower(title) like $1 and lower(performer) like $2',
-            values: [`%${title.toLowerCase()}%`, `%${performer.toLowerCase()}%`],
+    async getSongs({ title = '', performer = '' }) {
+        const query = {
+            text: 'SELECT id, title, performer FROM songs where title ilike $1 and performer ilike $2',
+            values: [`%${title}%`, `%${performer}%`],
         };
-        } else if (title) {
-        query = {
-            text: 'SELECT id, title, performer FROM songs where lower(title) like $1',
-            values: [`%${title.toLowerCase()}%`],
-        };
-        } else if (performer) {
-        query = {
-            text: 'SELECT id, title, performer FROM songs where lower(performer) like $1',
-            values: [`%${performer.toLowerCase()}%`],
-        };
-        } else {
-        query = 'SELECT id, title, performer FROM songs';
-        }
-
-        const result = await this._pool.query(query);
-        if (!result.rows.length) {
-        throw new NotFoundError('Lagu tidak ditemukan');
-        }
-        return result.rows;
+        const { rows } = await this._pool.query(query);
+        return rows;
     }
 
     async getSongById(id) {
