@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-// const ClientError = require('../../exceptions/ClientError');
+
 const autoBind = require('auto-bind');
 
 class AlbumsHandler {

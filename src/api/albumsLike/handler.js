@@ -1,11 +1,11 @@
+const autoBind = require('auto-bind');
+
 class AlbumLikesHandler {
   constructor(service, albumsService) {
     this._service = service;
     this._albumsService = albumsService;
 
-    this.postLikeHandler = this.postLikeHandler.bind(this);
-    this.getLikeHandler = this.getLikeHandler.bind(this);
-    this.deleteLikeHandler = this.deleteLikeHandler.bind(this);
+    autoBind(this);
   }
 
   async postLikeHandler(request, h) {
@@ -19,7 +19,6 @@ class AlbumLikesHandler {
         albumId,
       );
 
-      // if (!alreadyLiked) {
       const likeId = await this._service.addAlbumLike(credentialId, albumId);
 
       const response = h.response({
@@ -28,16 +27,6 @@ class AlbumLikesHandler {
       });
       response.code(201);
       return response;
-      // }
-
-      // await this._service.deleteAlbumLike(credentialId, albumId);
-
-      // const response = h.response({
-      //   status: 'success',
-      //   message: 'Berhasil melakukan unlike',
-      // });
-      // response.code(201);
-      // return response;
     }
 
   async getLikeHandler(request, h) {
